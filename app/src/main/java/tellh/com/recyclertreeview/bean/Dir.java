@@ -8,10 +8,12 @@ import tellh.com.recyclertreeview_lib.LayoutItemType;
  */
 
 public class Dir implements LayoutItemType {
-    public String dirName;
+
+
+    public String name;
 
     public Dir(String dirName) {
-        this.dirName = dirName;
+        this.name = dirName;
     }
 
     @Override

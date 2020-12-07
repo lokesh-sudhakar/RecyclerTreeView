@@ -8,10 +8,10 @@ import tellh.com.recyclertreeview_lib.LayoutItemType;
  */
 
 public class File implements LayoutItemType {
-    public String fileName;
+    public String name;
 
     public File(String fileName) {
-        this.fileName = fileName;
+        this.name = fileName;
     }
 
     @Override

@@ -21,7 +21,7 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private static final String KEY_IS_EXPAND = "IS_EXPAND";
     private final List<? extends TreeViewBinder> viewBinders;
     private List<TreeNode> displayNodes;
-    private int padding = 30;
+    private int padding = 60;
     private OnTreeNodeListener onTreeNodeListener;
     private boolean toCollapseChild;
 
@@ -47,6 +47,11 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             if (!node.isLeaf() && node.isExpand())
                 findDisplayNodes(node.getChildList());
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return displayNodes.get(position).hashCode();
     }
 
     @Override
@@ -95,14 +100,14 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             public void onClick(View v) {
                 TreeNode selectedNode = displayNodes.get(holder.getLayoutPosition());
                 // Prevent multi-click during the short interval.
-                try {
-                    long lastClickTime = (long) holder.itemView.getTag();
-                    if (System.currentTimeMillis() - lastClickTime < 500)
-                        return;
-                } catch (Exception e) {
-                    holder.itemView.setTag(System.currentTimeMillis());
-                }
-                holder.itemView.setTag(System.currentTimeMillis());
+//                try {
+//                    long lastClickTime = (long) holder.itemView.getTag();
+//                    if (System.currentTimeMillis() - lastClickTime < 2000)
+//                        return;
+//                } catch (Exception e) {
+//                    holder.itemView.setTag(System.currentTimeMillis());
+//                }
+//                holder.itemView.setTag(System.currentTimeMillis());
 
                 if (onTreeNodeListener != null && onTreeNodeListener.onClick(selectedNode, holder))
                     return;
@@ -123,6 +128,40 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             if (viewBinder.getLayoutId() == displayNodes.get(position).getContent().getLayoutId())
                 viewBinder.bindView(holder, position, displayNodes.get(position));
         }
+//        expandNode(holder);
+    }
+
+    public void expandAllNodes(TreeNode node) {
+        TreeNode selectedNode = node;
+        // Prevent multi-click during the short interval.
+//                try {
+//                    long lastClickTime = (long) holder.itemView.getTag();
+//                    if (System.currentTimeMillis() - lastClickTime < 2000)
+//                        return;
+//                } catch (Exception e) {
+//                    holder.itemView.setTag(System.currentTimeMillis());
+//                }
+//                holder.itemView.setTag(System.currentTimeMillis());
+//
+//        if (onTreeNodeListener != null && onTreeNodeListener.onClick(selectedNode, holder))
+//            return;
+        if (selectedNode.isLeaf())
+            return;
+        // This TreeNode was locked to click.
+        if (selectedNode.isLocked()) return;
+        boolean isExpand = selectedNode.isExpand();
+        int positionStart = displayNodes.indexOf(selectedNode) + 1;
+        if (!isExpand) {
+            notifyItemRangeInserted(positionStart, addChildNodes(selectedNode, positionStart));
+        } else {
+            notifyItemRangeRemoved(positionStart, removeChildNodes(selectedNode, true));
+        }
+    }
+
+    private void expandNode(RecyclerView.ViewHolder holder) {
+        TreeNode selectedNode = displayNodes.get(holder.getLayoutPosition());
+        int positionStart = displayNodes.indexOf(selectedNode) + 1;
+        notifyItemRangeInserted(positionStart, addChildNodes(selectedNode, positionStart));
     }
 
     private int addChildNodes(TreeNode pNode, int startIndex) {
@@ -249,11 +288,13 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private boolean areContentsTheSame(TreeNode oldNode, TreeNode newNode) {
         return oldNode.getContent() != null && oldNode.getContent().equals(newNode.getContent())
                 && oldNode.isExpand() == newNode.isExpand();
+//        return false;
     }
 
     // judge if the same item for DiffUtil
     private boolean areItemsTheSame(TreeNode oldNode, TreeNode newNode) {
         return oldNode.getContent() != null && oldNode.getContent().equals(newNode.getContent());
+//        return false;
     }
 
     /**
@@ -274,6 +315,36 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 removeChildNodes(root);
         }
         notifyDiff(temp);
+    }
+
+    public void expandNodes(List<TreeNode> rootNodeList) {
+        for (TreeNode currentNode : rootNodeList) {
+            expandAllNodes(currentNode);
+            expandNodes(currentNode.getChildList());
+        }
+    }
+
+
+    public void expandAll(List<TreeNode> rootNode) {
+        TreeNode selectedNode = rootNode.get(1);
+        if (selectedNode.isLocked()) return;
+        boolean isExpand = selectedNode.isExpand();
+        int positionStart = displayNodes.indexOf(selectedNode) + 1;
+        if (!isExpand) {
+            notifyItemRangeInserted(positionStart, addChildNodes(selectedNode, positionStart));
+        }
+//        List<TreeNode> temp = backupDisplayNodes();
+//        List<TreeNode> roots = new ArrayList<>();
+//        int startIndex = 0;
+//        for (TreeNode displayNode : rootNode) {
+//            addChildNodes(displayNode,startIndex);
+//        }
+//        notifyDiff(temp);
+//        TreeNode selectedNode = displayNodes.get(holder.getLayoutPosition());
+//        int positionStart = displayNodes.indexOf(selectedNode) + 1;
+//        List<TreeNode> temp = backupDisplayNodes();
+//        notifyItemRangeInserted(positionStart, addChildNodes(selectedNode, positionStart));
+
     }
 
     @NonNull
